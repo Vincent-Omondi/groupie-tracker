@@ -92,12 +92,15 @@ func GetLocations() ([]Location, error) {
 		return nil, err
 	}
 
-	var locations []Location
+	var locations struct {
+		Index []Location `json:"index"`
+	}
+
 	if err := json.Unmarshal(body, &locations); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal locations: %v", err)
 	}
 
-	return locations, nil
+	return locations.Index, nil
 }
 
 // GetDates fetches the date data from the API and returns a slice of Date structs
@@ -107,12 +110,15 @@ func GetDates() ([]Date, error) {
 		return nil, err
 	}
 
-	var dates []Date
+	var dates struct {
+		Index []Date `json:"index"`
+	}
+
 	if err := json.Unmarshal(body, &dates); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal dates: %v", err)
 	}
 
-	return dates, nil
+	return dates.Index, nil
 }
 
 // GetRelations fetches the relation data from the API and returns a slice of Relation structs
@@ -122,10 +128,12 @@ func GetRelations() ([]Relation, error) {
 		return nil, err
 	}
 
-	var relations []Relation
+	var relations struct {
+		Index []Relation `json:"index"`
+	}
 	if err := json.Unmarshal(body, &relations); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal relations: %v", err)
 	}
 
-	return relations, nil
+	return relations.Index, nil
 }
