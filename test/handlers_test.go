@@ -2,169 +2,169 @@ package tests
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/Vincent-Omondi/groupie-tracker/api"
 	"github.com/Vincent-Omondi/groupie-tracker/controllers"
+	"github.com/stretchr/testify/assert"
+	// "github.com/stretchr/testify/assert"
 )
 
-// Mock data for testing
-var (
-	mockArtists = []api.Artist{
-		{ID: 1, Name: "Artist 1", Image: "image1.jpg", StartYear: 2000, FirstAlbum: "Album 1", Members: []string{"Member 1", "Member 2"}},
-	}
-	mockLocations = []api.Location{
-		{ID: 1, Locations: []string{"Location 1", "Location 2"}},
-	}
-	mockDates = []api.Date{
-		{ID: 1, Dates: []string{"2024-08-01", "2024-08-02"}},
-	}
-	mockRelations = []api.Relation{
-		{ID: 1, DatesLocations: map[string][]string{"2024-08-01": {"Location 1"}, "2024-08-02": {"Location 2"}}},
-	}
-)
-
-// Mock FetchData function
-func mockFetchData(url string) ([]byte, error) {
-	switch url {
-	case api.ArtistsURL:
-		return json.Marshal(mockArtists)
-	case api.LocationsURL:
-		return json.Marshal(mockLocations)
-	case api.DatesURL:
-		return json.Marshal(mockDates)
-	case api.RelationURL:
-		return json.Marshal(mockRelations)
-	}
-	return nil, nil
+type mockFetcher struct {
+	data map[string][]byte
+	err  error
 }
 
-// TestGetArtistsHandler tests the GetArtistsHandler function
-func TestGetArtistsHandler(t *testing.T) {
-	// Replace FetchData with the mock implementation
-	originalFetchData := api.FetchData
-	defer func() { api.FetchData = originalFetchData }() // Restore original function after test
+func (m mockFetcher) FetchData(url string) ([]byte, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.data[url], nil
+}
 
-	api.FetchData = mockFetchData
+func TestGetArtistsHandler(t *testing.T) {
+	data := map[string][]byte{
+		api.ArtistsURL: []byte(`[{"id":1,"name":"Artist1","image":"image1","creationDate":2000,"firstAlbum":"2001-01-01","members":["member1"],"locations":"loc1","concertDates":"date1","relations":"rel1"}]`),
+	}
+
+	api.Fetcher = mockFetcher{data: data}
 
 	req, err := http.NewRequest("GET", "/artists", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(controllers.GetArtistsHandler)
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}
-
+	assert.Equal(t, http.StatusOK, rr.Code)
 	var artists []api.Artist
-	err = json.Unmarshal(rr.Body.Bytes(), &artists)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(artists) != len(mockArtists) {
-		t.Errorf("handler returned unexpected body: got %v want %v", len(artists), len(mockArtists))
-	}
+	err = json.NewDecoder(rr.Body).Decode(&artists)
+	assert.NoError(t, err)
+	assert.Len(t, artists, 1)
+	assert.Equal(t, "Artist1", artists[0].Name)
 }
 
-// TestGetLocationsHandler tests the GetLocationsHandler function
-func TestGetLocationsHandler(t *testing.T) {
-	// Replace FetchData with the mock implementation
-	originalFetchData := api.FetchData
-	defer func() { api.FetchData = originalFetchData }() // Restore original function after test
+func TestGetArtistsHandler_Failure(t *testing.T) {
+	api.Fetcher = mockFetcher{err: errors.New("fetch error")}
 
-	api.FetchData = mockFetchData
+	req, err := http.NewRequest("GET", "/artists", nil)
+	assert.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(controllers.GetArtistsHandler)
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+	assert.Equal(t, "Failed to fetch artists\n", rr.Body.String())
+}
+
+func TestGetLocationsHandler(t *testing.T) {
+	data := map[string][]byte{
+		api.LocationsURL: []byte(`{"index":[{"id":1,"locations":["loc1"],"dates":"date1"}]}`),
+	}
+
+	api.Fetcher = mockFetcher{data: data}
 
 	req, err := http.NewRequest("GET", "/locations", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(controllers.GetLocationsHandler)
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}
-
+	assert.Equal(t, http.StatusOK, rr.Code)
 	var locations []api.Location
-	err = json.Unmarshal(rr.Body.Bytes(), &locations)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(locations) != len(mockLocations) {
-		t.Errorf("handler returned unexpected body: got %v want %v", len(locations), len(mockLocations))
-	}
+	err = json.NewDecoder(rr.Body).Decode(&locations)
+	assert.NoError(t, err)
+	assert.Len(t, locations, 1)
+	assert.Equal(t, "loc1", locations[0].Locations[0])
 }
 
-// TestGetDatesHandler tests the GetDatesHandler function
-func TestGetDatesHandler(t *testing.T) {
-	// Replace FetchData with the mock implementation
-	originalFetchData := api.FetchData
-	defer func() { api.FetchData = originalFetchData }() // Restore original function after test
+func TestGetLocationsHandler_Failure(t *testing.T) {
+	api.Fetcher = mockFetcher{err: errors.New("fetch error")}
 
-	api.FetchData = mockFetchData
+	req, err := http.NewRequest("GET", "/locations", nil)
+	assert.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(controllers.GetLocationsHandler)
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+	assert.Equal(t, "Failed to fetch locations\n", rr.Body.String())
+}
+
+func TestGetDatesHandler(t *testing.T) {
+	data := map[string][]byte{
+		api.DatesURL: []byte(`{"index":[{"id":1,"dates":["date1"]}]}`),
+	}
+
+	api.Fetcher = mockFetcher{data: data}
 
 	req, err := http.NewRequest("GET", "/dates", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(controllers.GetDatesHandler)
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}
-
+	assert.Equal(t, http.StatusOK, rr.Code)
 	var dates []api.Date
-	err = json.Unmarshal(rr.Body.Bytes(), &dates)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(dates) != len(mockDates) {
-		t.Errorf("handler returned unexpected body: got %v want %v", len(dates), len(mockDates))
-	}
+	err = json.NewDecoder(rr.Body).Decode(&dates)
+	assert.NoError(t, err)
+	assert.Len(t, dates, 1)
+	assert.Equal(t, "date1", dates[0].Dates[0])
 }
 
-// TestGetRelationsHandler tests the GetRelationsHandler function
-func TestGetRelationsHandler(t *testing.T) {
-	// Replace FetchData with the mock implementation
-	originalFetchData := api.FetchData
-	defer func() { api.FetchData = originalFetchData }() // Restore original function after test
+func TestGetDatesHandler_Failure(t *testing.T) {
+	api.Fetcher = mockFetcher{err: errors.New("fetch error")}
 
-	api.FetchData = mockFetchData
+	req, err := http.NewRequest("GET", "/dates", nil)
+	assert.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(controllers.GetDatesHandler)
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+	assert.Equal(t, "Failed to fetch dates\n", rr.Body.String())
+}
+
+func TestGetRelationsHandler(t *testing.T) {
+	data := map[string][]byte{
+		api.RelationURL: []byte(`{"index":[{"id":1,"datesLocations":{"loc1":["date1"]}}]}`),
+	}
+
+	api.Fetcher = mockFetcher{data: data}
 
 	req, err := http.NewRequest("GET", "/relations", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(controllers.GetRelationsHandler)
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}
-
+	assert.Equal(t, http.StatusOK, rr.Code)
 	var relations []api.Relation
-	err = json.Unmarshal(rr.Body.Bytes(), &relations)
-	if err != nil {
-		t.Fatal(err)
-	}
+	err = json.NewDecoder(rr.Body).Decode(&relations)
+	assert.NoError(t, err)
+	assert.Len(t, relations, 1)
+	assert.Equal(t, "date1", relations[0].DatesLocations["date1"][0])
+}
 
-	if len(relations) != len(mockRelations) {
-		t.Errorf("handler returned unexpected body: got %v want %v", len(relations), len(mockRelations))
-	}
+func TestGetRelationsHandler_Failure(t *testing.T) {
+	api.Fetcher = mockFetcher{err: errors.New("fetch error")}
+
+	req, err := http.NewRequest("GET", "/relations", nil)
+	assert.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(controllers.GetRelationsHandler)
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+	assert.Equal(t, "Failed to fetch relations\n", rr.Body.String())
 }
