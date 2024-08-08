@@ -24,3 +24,42 @@
     <script src="static/scripts.js"></script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ashman Digital Hub - Movies and Series</title>
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="topbar">
+        <div class="logo">Artists Legend</div>
+        <div class="search-container">
+            <input type="text" class="search-input" id="search-input" placeholder="Search movies or series...">
+            <button class="search-button" onclick="searchContent()">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="content-tabs">
+            <button class="tab active" onclick="switchTab('movies')">Movies</button>
+            <button class="tab" onclick="switchTab('series')">TV Series</button>
+        </div>
+        <div class="content-grid" id="content-grid"></div>
+    </div>
+
+    <div id="content-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeContentModal()">&times;</span>
+            <div id="content-modal-details"></div>
+        </div>
+    </div>
+
+    <script src="../styles/scripts.js"></script>
+</body>
+</html>

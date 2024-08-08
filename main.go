@@ -1,4 +1,4 @@
-// backend/main.go
+//main.go
 
 package main
 

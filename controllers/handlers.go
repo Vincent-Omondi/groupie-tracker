@@ -4,6 +4,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/Vincent-Omondi/groupie-tracker/api"
 )
@@ -57,5 +58,35 @@ func GetRelationsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(relations); err != nil {
 		http.Error(w, "Failed to encode locations", http.StatusInternalServerError)
+	}
+}
+
+func GetArtistByIDHandler(w http.ResponseWriter, r *http.Request) {
+	// Get artist ID from the URL path
+	idStr := r.URL.Path[len("/artists/"):]
+	artistID, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid artist ID", http.StatusBadRequest)
+		return
+	}
+
+	artist, relation, err := api.GetArtistByID(artistID)
+	if err != nil {
+		http.Error(w, "Failed to fetch artist or relation", http.StatusInternalServerError)
+		return
+	}
+
+	// Create a response combining artist and relation data
+	response := struct {
+		Artist   *api.Artist   `json:"artist"`
+		Relation *api.Relation `json:"relation"`
+	}{
+		Artist:   artist,
+		Relation: relation,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
 }

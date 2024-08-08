@@ -145,3 +145,44 @@ func GetRelations() ([]Relation, error) {
 
 	return relations.Index, nil
 }
+
+// GetArtistByID fetches the artist data by ID and returns the Artist struct along with its relation
+func GetArtistByID(artistID int) (*Artist, *Relation, error) {
+	// Fetch artist data
+	artists, err := GetArtists()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Find the artist with the specified ID
+	var artist *Artist
+	for _, a := range artists {
+		if a.ID == artistID {
+			artist = &a
+			break
+		}
+	}
+	if artist == nil {
+		return nil, nil, fmt.Errorf("artist not found")
+	}
+
+	// Fetch relation data
+	relations, err := GetRelations()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Find the relation for the specific artist
+	var relation *Relation
+	for _, r := range relations {
+		if r.ID == artistID {
+			relation = &r
+			break
+		}
+	}
+	if relation == nil {
+		return nil, nil, fmt.Errorf("relation not found for artist")
+	}
+
+	return artist, relation, nil
+}
