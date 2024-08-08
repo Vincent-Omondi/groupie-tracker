@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 // Structs to unmarshal JSON data
@@ -48,15 +49,21 @@ type DataFetcher interface {
 	FetchData(url string) ([]byte, error)
 }
 
-// Default Fetcher implementation
-var Fetcher DataFetcher = fetcher{}
+// Default Fetcher implementation with set timeout
+var Fetcher DataFetcher = fetcher{
+	client: &http.Client{
+		Timeout: 20 * time.Second,
+	},
+}
 
 // fetcher struct that implements the DataFetcher interface
-type fetcher struct{}
+type fetcher struct {
+	client *http.Client
+}
 
 // FetchData makes an HTTP GET request to the given URL and returns the response body
 func (f fetcher) FetchData(url string) ([]byte, error) {
-	resp, err := http.Get(url)
+	resp, err := f.client.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %v", err)
 	}
