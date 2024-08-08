@@ -1,4 +1,4 @@
-// routes.go
+//controllers/routes.go
 
 package controllers
 
@@ -14,7 +14,5 @@ func RegisterRoutes() {
 	http.HandleFunc("/relations", GetRelationsHandler)
 
 	// Serve static files (if any)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	// http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
-
-

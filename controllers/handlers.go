@@ -1,4 +1,4 @@
-// handler.go
+// controllers/handler.go
 package controllers
 
 import (
