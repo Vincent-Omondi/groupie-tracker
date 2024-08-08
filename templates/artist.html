@@ -1,24 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Artist Details</title>
-    <link rel="stylesheet" href="static/styles.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="css/templatemo-style.css">
 </head>
+
 <body>
-    <div class="container">
-        <h1 id="artist-name"></h1>
-        <img id="artist-image" src="" alt="Artist Image">
-        <p><strong>Creation Date:</strong> <span id="creation-date"></span></p>
-        <p><strong>First Album:</strong> <span id="first-album"></span></p>
-        <p><strong>Members:</strong> <span id="members"></span></p>
-        <h2>Concert Locations</h2>
-        <ul id="locations"></ul>
-        <h2>Concert Dates</h2>
-        <ul id="dates"></ul>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-film mr-2"></i>Catalog-Z
+            </a>
+        </div>
+    </nav>
+
+    <div class="container-fluid tm-container-content tm-mt-60">
+        <div id="artist-details" class="row">
+            <!-- Artist details will be dynamically injected here -->
+        </div>
     </div>
 
-    <script src="static/artist.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const artistId = urlParams.get('id');
+
+        fetch(`/artists?id=${artistId}`)
+            .then(response => response.json())
+            .then(artist => {
+                document.getElementById('artist-details').innerHTML = `
+                    <div class="col-12 mb-5">
+                        <h2>${artist.name}</h2>
+                        <img src="${artist.image}" alt="${artist.name}" class="img-fluid mb-4">
+                        <p><strong>Members:</strong> ${artist.members.join(', ')}</p>
+                        <p><strong>Creation Date:</strong> ${artist.creationDate}</p>
+                        <p><strong>First Album:</strong> ${artist.firstAlbum}</p>
+                        <h3 class="mt-5">Tour Dates</h3>
+                        <ul id="tour-dates"></ul>
+                    </div>
+                `;
+
+                // Fetch relations (dates and locations)
+                fetch(artist.relations)
+                    .then(response => response.json())
+                    .then(relations => {
+                        const datesList = document.getElementById('tour-dates');
+                        for (const [date, locations] of Object.entries(relations.datesLocations)) {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = `${date} - ${locations.join(', ')}`;
+                            datesList.appendChild(listItem);
+                        }
+                    });
+            })
+            .catch(error => console.error('Error fetching artist details:', error));
+    </script>
 </body>
+
 </html>
