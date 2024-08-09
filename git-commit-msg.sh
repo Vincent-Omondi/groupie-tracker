@@ -1,16 +1,31 @@
 #!/bin/bash
 
-changes=$(git status --porcelain)
-untracked=$(git status --porcelain | grep '^??')
-modified=$(git status --porcelain | grep '^ M')
+# Function to determine the commit message type
+function get_commit_message {
+    local file=$1
 
-if [ -n "$untracked" ]; then
-  commit_message="feat: add new files and directories"
-elif [ -n "$modified" ]; then
-  commit_message="fix: resolve issues with modified files"
-else
-  commit_message="docs: update README.md with new information"
-fi
+    if [[ $file == *.html ]]; then
+        echo "add: update HTML file $file"
+    elif [[ $file == *.css ]]; then
+        echo "feat: update CSS styles in $file"
+    elif [[ $file == *.js ]]; then
+        echo "feat: update JavaScript file $file"
+    elif [[ $file == *.go ]]; then
+        if git diff --cached --name-only | grep -q "$file"; then
+            echo "refactor: Refactor Go code in $file"
+        else
+            echo "add: Add new Go file $file"
+        fi
+    elif [[ $file == *.md ]]; then
+        echo "docs: Add or update documentation in $file"
+    else
+        echo "chore: Update $file"
+    fi
+}
 
-git add .
-git commit -m "$commit_message"
+# Add and commit each file individually
+for file in $(git ls-files --modified --others --exclude-standard); do
+    git add "$file"
+    commit_message=$(get_commit_message "$file")
+    git commit -m "$commit_message"
+done
