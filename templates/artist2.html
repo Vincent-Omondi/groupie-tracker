@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ashman Digital Hub - Movies and Series</title>
+    <title>Groupie-tracker</title>
     <link rel="stylesheet" href="../static/styles2.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
     <div class="topbar">
-        <div class="logo">Ashman Digital Hub</div>
+        <div class="logo">Groupie-tracker</div>
         <div class="search-container">
-            <input type="text" class="search-input" id="search-input" placeholder="Search movies or series...">
+            <input type="text" class="search-input" id="search-input" placeholder="Search artist...">
             <button class="search-button" onclick="searchContent()">
                 <i class="fas fa-search"></i> Search
             </button>
@@ -21,8 +21,8 @@
 
     <div class="main-content">
         <div class="content-tabs">
-            <button class="tab active" onclick="switchTab('movies')">Movies</button>
-            <button class="tab" onclick="switchTab('series')">TV Series</button>
+            <button class="tab active" onclick="switchTab('artists')">Artists</button>
+            <button class="tab" onclick="switchTab('about')">About</button>
         </div>
         <div class="content-grid" id="content-grid"></div>
     </div>
