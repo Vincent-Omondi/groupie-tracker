@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"learn.zone01kisumu.ke/git/johnodhiambo0/groupie-tracker/api"
 )
@@ -18,20 +19,24 @@ type ArtistDetailData struct {
 	Relation api.Relation
 }
 
+var artistCache []api.Artist
+var cacheTime time.Time
+
 func ServeArtists(w http.ResponseWriter, r *http.Request) {
-	artists, err := api.GetArtists()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if time.Since(cacheTime) > time.Minute*10{
+		artists, err := api.GetArtists()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		artistCache = artists
+		cacheTime = time.Now()
 	}
 
-	data := TemplateData{Artists: artists}
+	data := TemplateData{Artists: artistCache}
 
 	tmpl := template.Must(template.ParseFiles("templates/artists.html"))
-	err = tmpl.Execute(w, data)
-	if err != nil {
-		log.Println("Error executing template artist", err)
-	}
+	tmpl.Execute(w, data)
 }
 
 func ServeArtistDetails(w http.ResponseWriter, r *http.Request) {
