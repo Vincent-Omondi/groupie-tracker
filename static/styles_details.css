@@ -17,7 +17,7 @@
 
 li {
   text-decoration: none;
-  list-style: none;
+  /* list-style: none; */
 }
 
 body {
@@ -55,7 +55,7 @@ header {
 }
 
 .container {
-  width: 80%;
+  width: 75%;
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -68,7 +68,7 @@ header {
 }
 
 .container .left-side {
-  width: 40%;
+  width: 35%;
   display: grid;
   place-items: center;
   text-align: center;
@@ -76,35 +76,40 @@ header {
 }
 
 .container .left-side .artist-name {
-  font-size: 40px;
+  font-size: 30px;
 }
 
 .container .left-side .artist-image {
-  aspect-ratio: 1/1;
+  width: 300px;
 }
 
 .container .left-side p {
   font-size: 20px;
 }
 
-.container .line {
+.container .right-side::before {
+  content: '';
   background-color: #000000;
   width: 2px;
-  height: 50vh;
+  height: 60vh;
+  border-radius: 10px;
   position: absolute;
-  top: 25%;
-  left: 50%;
+  left: 40%;
+  bottom: 20%;
 }
 
 .container .right-side {
+  width: 55%;
   display: grid;
-  place-items: center;
-  text-align: center;
+  /* place-items: center; */
+  /* text-align: center; */
 }
 
 .container .right-side .artist-details {
-  display: grid;
-  row-gap: 20px;
+  width: 100%;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
 }
 
 .container .right-side .artist-details .locations h3,
@@ -118,4 +123,10 @@ header {
 .container .right-side .artist-details .dates ul li,
 .container .right-side .artist-details .relation ul li {
   font-size: 20px;
+}
+
+.container .right-side .artist-details .locations li,
+.container .right-side .artist-details .dates li,
+.container .right-side .artist-details .relation ul {
+  margin: 0 auto 10px;
 }
